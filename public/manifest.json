@@ -1,0 +1,26 @@
+{
+    "name": "Presenly – Sistem Absensi",
+    "short_name": "Presenly",
+    "description": "Sistem absensi karyawan berbasis GPS real-time",
+    "start_url": "/dashboard",
+    "display": "standalone",
+    "background_color": "#16a34a",
+    "theme_color": "#16a34a",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/images/logo_presenly.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/images/logo_presenly.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": ["productivity", "business"],
+    "lang": "id"
+}

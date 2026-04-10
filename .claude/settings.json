@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__laravel-boost__browser-logs",
+      "Bash(python3 -c ':*)",
+      "mcp__laravel-boost__list-routes"
+    ]
+  }
+}
