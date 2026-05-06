@@ -56,10 +56,17 @@ class AbsensiController extends Controller
             ], 403);
         }
 
-        // Tentukan status: Hadir atau Terlambat
+        // Tolak check-in jika sudah melewati jam masuk
         $jamMasukSekarang = now()->format('H:i:s');
         $batasJamMasuk = $lokasi?->jam_masuk ?? '08:00:00';
-        $status = $jamMasukSekarang <= $batasJamMasuk ? 'Hadir' : 'Terlambat';
+
+        if ($jamMasukSekarang > $batasJamMasuk) {
+            return response()->json([
+                'message' => 'Sudah melewati jam masuk ('.\Carbon\Carbon::parse($batasJamMasuk)->format('H:i').'). Anda terhitung Alfa hari ini.',
+            ], 422);
+        }
+
+        $status = 'Hadir';
 
         // Simpan absensi
         Absensi::create([
@@ -101,6 +108,16 @@ class AbsensiController extends Controller
         if (! $absensi) {
             return response()->json([
                 'message' => 'Data absen masuk tidak ditemukan!',
+            ], 422);
+        }
+
+        // Tolak check-out jika belum mencapai jam pulang
+        $lokasi = LokasiKerja::first();
+        $batasJamPulang = $lokasi?->jam_pulang;
+
+        if ($batasJamPulang && now()->format('H:i:s') < $batasJamPulang) {
+            return response()->json([
+                'message' => 'Check-out hanya bisa dilakukan mulai pukul '.\Carbon\Carbon::parse($batasJamPulang)->format('H:i').'.',
             ], 422);
         }
 

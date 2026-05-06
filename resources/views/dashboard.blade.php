@@ -228,6 +228,12 @@
         .riwayat-status.izin { background: #dbeafe; color: #1d4ed8; }
         .mode-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 100px; background: #eff6ff; color: #1d4ed8; }
         .mode-badge [data-lucide] { width: 10px; height: 10px; }
+        .pengumuman-card { background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; animation: fadeUp 0.4s ease both; }
+        .pengumuman-header { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+        .pengumuman-item { padding: 10px 0; border-bottom: 1px solid #fde68a; }
+        .pengumuman-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .pengumuman-judul { font-size: 13px; font-weight: 700; color: var(--dark); }
+        .pengumuman-isi { font-size: 12px; color: var(--gray); margin-top: 3px; line-height: 1.5; }
         .empty-state { text-align: center; padding: 32px 20px; }
         .empty-state-icon { width: 52px; height: 52px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
         .empty-state-icon svg { width: 24px; height: 24px; stroke: #16a34a; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
@@ -354,6 +360,19 @@
             @endif
         </a>
     </div>
+
+    {{-- PENGUMUMAN --}}
+    @if($pengumuman->isNotEmpty())
+    <div class="pengumuman-card">
+        <div class="pengumuman-header"><i data-lucide="megaphone"></i> Pengumuman</div>
+        @foreach($pengumuman as $p)
+        <div class="pengumuman-item">
+            <div class="pengumuman-judul">{{ $p->judul }}</div>
+            <div class="pengumuman-isi">{{ Str::limit($p->isi, 120) }}</div>
+        </div>
+        @endforeach
+    </div>
+    @endif
 
     {{-- STATUS KEHADIRAN --}}
     <div class="card status-card">
@@ -556,6 +575,56 @@
 
     // Mode ditentukan admin, bukan karyawan
     var modeWFA = {{ $modeHariIni === 'WFA' ? 'true' : 'false' }};
+
+    // Jam masuk & pulang
+    var jamMasukStr  = "{{ $jamMasuk ?? '' }}";
+    var jamPulangStr = "{{ $jamPulang ?? '' }}";
+
+    function jamKeMenit(str) {
+        if (!str) return null;
+        var parts = str.split(':');
+        return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    }
+
+    function menitSekarang() {
+        var now = new Date();
+        return now.getHours() * 60 + now.getMinutes();
+    }
+
+    function cekRestriksiWaktu() {
+        var sekarang = menitSekarang();
+        var btnMasuk  = document.getElementById('btn-masuk');
+        var btnPulang = document.getElementById('btn-pulang');
+        var infoBox   = document.getElementById('gpsInfoBox');
+
+        // Lock check-in jika sudah melewati jam masuk
+        if (jamMasukStr && !btnMasuk.hasAttribute('data-sudah-masuk')) {
+            var batasMasuk = jamKeMenit(jamMasukStr);
+            if (sekarang > batasMasuk) {
+                btnMasuk.disabled = true;
+                btnMasuk.style.opacity = '0.4';
+                btnMasuk.style.cursor = 'not-allowed';
+                if (infoBox) { infoBox.textContent = 'Jam masuk (' + jamMasukStr + ') sudah terlewat. Anda terhitung Alfa hari ini.'; infoBox.classList.add('show'); }
+                return false; // tidak boleh check-in
+            }
+        }
+
+        // Lock check-out jika belum mencapai jam pulang
+        if (jamPulangStr && btnPulang && !btnPulang.hasAttribute('data-sudah-pulang')) {
+            var batasPulang = jamKeMenit(jamPulangStr);
+            if (sekarang < batasPulang) {
+                btnPulang.disabled = true;
+                btnPulang.style.opacity = '0.4';
+                btnPulang.style.cursor = 'not-allowed';
+                btnPulang.title = 'Check-out mulai pukul ' + jamPulangStr;
+            }
+        }
+
+        return true;
+    }
+
+    cekRestriksiWaktu();
+    setInterval(cekRestriksiWaktu, 60000);
 
     function hitungJarak(lat1, lon1, lat2, lon2) {
         var R = 6371000;

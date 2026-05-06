@@ -152,7 +152,7 @@
     <div class="page-header">
         <h1>Riwayat Absensi</h1>
         <div class="page-sub">
-            {{ \Carbon\Carbon::create()->month($bulan)->translatedFormat('F') }} {{ $tahun }}
+            {{ \Carbon\Carbon::createFromDate(null, (int) $bulan)->translatedFormat('F') }} {{ $tahun }}
         </div>
     </div>
 
@@ -161,7 +161,7 @@
         <div class="card-title-row">
             <span class="card-title">Ringkasan</span>
             <span style="font-size:11px;color:var(--gray);background:var(--gray-light);border:1px solid var(--border);border-radius:6px;padding:2px 8px;">
-                {{ \Carbon\Carbon::create()->month($bulan)->translatedFormat('F') }} {{ $tahun }}
+                {{ \Carbon\Carbon::createFromDate(null, (int) $bulan)->translatedFormat('F') }} {{ $tahun }}
             </span>
         </div>
         <div class="stats-grid">
@@ -194,7 +194,7 @@
                 <select name="bulan" class="filter-select">
                     @for($i = 1; $i <= 12; $i++)
                         <option value="{{ $i }}" {{ ($bulan == $i) ? 'selected' : '' }}>
-                            {{ \Carbon\Carbon::create()->month($i)->translatedFormat('F') }}
+                            {{ \Carbon\Carbon::createFromDate(null, (int) $i)->translatedFormat('F') }}
                         </option>
                     @endfor
                 </select>

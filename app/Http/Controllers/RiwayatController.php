@@ -56,17 +56,16 @@ class RiwayatController extends Controller
             ->get();
 
         $user = Auth::user();
-        $namaBulan = \Carbon\Carbon::create()->month($bulan)->translatedFormat('F');
-        $namaBulan = \Carbon\Carbon::create()->month((int) $bulan)->translatedFormat('F');
+        $namaBulan = \Carbon\Carbon::createFromDate(null, (int) $bulan)->translatedFormat('F');
 
         return view('exports.riwayat-pdf', compact('riwayat', 'user', 'bulan', 'tahun', 'namaBulan'));
     }
 
-    // ── EXPORT CSV/EXCEL ──
-    public function exportCsv(Request $request)
+    // ── EXPORT EXCEL ──
+    public function exportCsv(Request $request): \Illuminate\Http\Response
     {
-        $bulan = $request->input('bulan', now()->month);
-        $tahun = $request->input('tahun', now()->year);
+        $bulan = (int) $request->input('bulan', now()->month);
+        $tahun = (int) $request->input('tahun', now()->year);
 
         $riwayat = Absensi::where('user_id', Auth::id())
             ->whereMonth('tanggal', $bulan)
@@ -74,36 +73,22 @@ class RiwayatController extends Controller
             ->orderBy('tanggal', 'asc')
             ->get();
 
+        $user = Auth::user();
         $namaBulan = \Carbon\Carbon::create()->month($bulan)->translatedFormat('F');
-        $filename = "absensi_{$namaBulan}_{$tahun}.csv";
+        $filename = "rekap_absensi_{$namaBulan}_{$tahun}.xls";
 
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-        ];
+        $totalHadir = $riwayat->where('status', 'Hadir')->count();
+        $totalTerlambat = $riwayat->where('status', 'Terlambat')->count();
+        $totalAlfa = $riwayat->where('status', 'Alfa')->count();
+        $totalIzin = $riwayat->where('status', 'Izin')->count();
 
-        $callback = function () use ($riwayat) {
-            $file = fopen('php://output', 'w');
+        $html = view('exports.riwayat-excel', compact(
+            'riwayat', 'user', 'namaBulan', 'tahun',
+            'totalHadir', 'totalTerlambat', 'totalAlfa', 'totalIzin'
+        ))->render();
 
-            // Header baris
-            fputcsv($file, ['No', 'Tanggal', 'Hari', 'Jam Masuk', 'Jam Pulang', 'Durasi Kerja', 'Jarak (meter)', 'Status']);
-
-            foreach ($riwayat as $i => $row) {
-                fputcsv($file, [
-                    $i + 1,
-                    \Carbon\Carbon::parse($row->tanggal)->format('d/m/Y'),
-                    \Carbon\Carbon::parse($row->tanggal)->translatedFormat('l'),
-                    $row->jam_masuk ? \Carbon\Carbon::parse($row->jam_masuk)->format('H:i') : '-',
-                    $row->jam_pulang ? \Carbon\Carbon::parse($row->jam_pulang)->format('H:i') : '-',
-                    $row->durasi_kerja ?? '-',
-                    $row->jarak_meter ? number_format($row->jarak_meter, 0, ',', '.') : '-',
-                    $row->status ?? '-',
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return response($html)
+            ->header('Content-Type', 'application/vnd.ms-excel')
+            ->header('Content-Disposition', "attachment; filename=\"{$filename}\"");
     }
 }

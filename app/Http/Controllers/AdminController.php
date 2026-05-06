@@ -91,7 +91,7 @@ class AdminController extends Controller
                 'email' => $item->user->email ?? '-',
                 'jam_masuk' => $item->jam_masuk ? \Carbon\Carbon::parse($item->jam_masuk)->format('H:i') : '-',
                 'jam_pulang' => $item->jam_pulang ? \Carbon\Carbon::parse($item->jam_pulang)->format('H:i') : '-',
-                'jarak_meter' => $item->jarak_meter ? number_format($item->jarak_meter, 0) . ' m' : '-',
+                'jarak_meter' => $item->jarak_meter ? number_format($item->jarak_meter, 0).' m' : '-',
                 'durasi_kerja' => $item->durasi_kerja ?? '-',
                 'status' => $item->status ?? '-',
             ]);
@@ -211,6 +211,24 @@ class AdminController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
+    // ── EXPORT PDF REKAP PER KARYAWAN ──
+    public function karyawanExportPdf(Request $request, int $id): \Illuminate\View\View
+    {
+        $user = User::where('role_id', 2)->findOrFail($id);
+        $bulan = (int) $request->input('bulan', now()->month);
+        $tahun = (int) $request->input('tahun', now()->year);
+
+        $absensi = Absensi::where('user_id', $id)
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun)
+            ->orderBy('tanggal', 'asc')
+            ->get();
+
+        $namaBulan = \Carbon\Carbon::create()->month($bulan)->translatedFormat('F');
+
+        return view('admin.exports.rekap-karyawan-pdf', compact('user', 'absensi', 'bulan', 'tahun', 'namaBulan'));
+    }
+
     // ── TAMBAH KARYAWAN ──
     public function karyawanStore(Request $request): RedirectResponse
     {
@@ -327,10 +345,10 @@ class AdminController extends Controller
     }
 
     // ── EXPORT CSV SEMUA ABSENSI ──
-    public function exportCsv(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    public function exportCsv(Request $request): \Illuminate\Http\Response
     {
-        $bulan = $request->input('bulan', now()->month);
-        $tahun = $request->input('tahun', now()->year);
+        $bulan = (int) $request->input('bulan', now()->month);
+        $tahun = (int) $request->input('tahun', now()->year);
         $tanggalDari = $request->input('tanggal_dari', '');
         $tanggalSampai = $request->input('tanggal_sampai', '');
         $useDateRange = $tanggalDari && $tanggalSampai;
@@ -342,42 +360,25 @@ class AdminController extends Controller
                 $q->whereMonth('tanggal', $bulan)->whereYear('tanggal', $tahun);
             })
             ->orderBy('tanggal', 'asc')
+            ->orderBy('created_at', 'asc')
             ->get();
 
         if ($useDateRange) {
-            $filename = "rekap_absensi_{$tanggalDari}_{$tanggalSampai}.csv";
+            $periodeLabel = \Carbon\Carbon::parse($tanggalDari)->translatedFormat('d F Y')
+                .' s/d '
+                .\Carbon\Carbon::parse($tanggalSampai)->translatedFormat('d F Y');
+            $filename = "rekap_absensi_{$tanggalDari}_{$tanggalSampai}.xls";
         } else {
-            $namaBulan = \Carbon\Carbon::create()->month((int) $bulan)->translatedFormat('F');
-            $filename = "rekap_absensi_{$namaBulan}_{$tahun}.csv";
+            $namaBulan = \Carbon\Carbon::createFromDate(null, $bulan)->translatedFormat('F');
+            $periodeLabel = "{$namaBulan} {$tahun}";
+            $filename = "rekap_absensi_{$namaBulan}_{$tahun}.xls";
         }
 
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-        ];
+        $html = view('admin.exports.absensi-excel', compact('absensi', 'periodeLabel'))->render();
 
-        $callback = function () use ($absensi) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, ['No', 'Nama', 'Email', 'Tanggal', 'Hari', 'Jam Masuk', 'Jam Pulang', 'Durasi', 'Jarak (m)', 'Mode Kerja', 'Status']);
-            foreach ($absensi as $i => $row) {
-                fputcsv($file, [
-                    $i + 1,
-                    $row->user->name ?? '-',
-                    $row->user->email ?? '-',
-                    \Carbon\Carbon::parse($row->tanggal)->format('d/m/Y'),
-                    \Carbon\Carbon::parse($row->tanggal)->translatedFormat('l'),
-                    $row->jam_masuk ? \Carbon\Carbon::parse($row->jam_masuk)->format('H:i') : '-',
-                    $row->jam_pulang ? \Carbon\Carbon::parse($row->jam_pulang)->format('H:i') : '-',
-                    $row->durasi_kerja ?? '-',
-                    $row->jarak_meter ? number_format($row->jarak_meter, 0, ',', '.') : '-',
-                    $row->mode_kerja ?? 'WFO',
-                    $row->status ?? '-',
-                ]);
-            }
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return response($html)
+            ->header('Content-Type', 'application/vnd.ms-excel')
+            ->header('Content-Disposition', "attachment; filename=\"{$filename}\"");
     }
 
     // ── JADWAL MODE KERJA ──
@@ -393,15 +394,15 @@ class AdminController extends Controller
     public function jadwalModeStore(Request $request): RedirectResponse
     {
         $request->validate([
-            'tanggal'    => 'required|date|after_or_equal:today',
-            'mode'       => 'required|in:WFO,WFA',
+            'tanggal' => 'required|date|after_or_equal:today',
+            'mode' => 'required|in:WFO,WFA',
             'keterangan' => 'nullable|string|max:200',
         ]);
 
         JadwalModeKerja::updateOrCreate(
             ['tanggal' => $request->tanggal],
             [
-                'mode'       => $request->mode,
+                'mode' => $request->mode,
                 'keterangan' => $request->keterangan,
                 'dibuat_oleh' => Auth::id(),
             ]
@@ -423,6 +424,93 @@ class AdminController extends Controller
         return back()->with('success', 'Jadwal mode kerja berhasil dihapus.');
     }
 
+    // ── KOREKSI ABSENSI: TAMBAH MANUAL ──
+    public function absensiStore(Request $request, int $id): RedirectResponse
+    {
+        $user = User::where('role_id', 2)->findOrFail($id);
+
+        $request->validate([
+            'tanggal' => 'required|date',
+            'jam_masuk' => 'nullable|date_format:H:i',
+            'jam_pulang' => 'nullable|date_format:H:i',
+            'status' => 'required|in:Hadir,Terlambat,Alfa,Izin',
+            'mode_kerja' => 'required|in:WFO,WFA',
+        ]);
+
+        $existing = Absensi::where('user_id', $id)->whereDate('tanggal', $request->tanggal)->first();
+        if ($existing) {
+            return back()->with('error', 'Sudah ada data absensi pada tanggal tersebut.');
+        }
+
+        $durasi = null;
+        if ($request->jam_masuk && $request->jam_pulang) {
+            $masuk = \Carbon\Carbon::parse($request->jam_masuk);
+            $pulang = \Carbon\Carbon::parse($request->jam_pulang);
+            $menit = $masuk->diffInMinutes($pulang);
+            $durasi = floor($menit / 60).' jam '.($menit % 60).' menit';
+        }
+
+        Absensi::create([
+            'user_id' => $id,
+            'tanggal' => $request->tanggal,
+            'jam_masuk' => $request->jam_masuk ? $request->jam_masuk.':00' : null,
+            'jam_pulang' => $request->jam_pulang ? $request->jam_pulang.':00' : null,
+            'durasi_kerja' => $durasi,
+            'status' => $request->status,
+            'mode_kerja' => $request->mode_kerja,
+            'jarak_meter' => 0,
+            'latitude_absen' => 0,
+            'longitude_absen' => 0,
+        ]);
+
+        AuditLog::catat('Koreksi Absensi', "Menambah absensi manual untuk {$user->name} tanggal {$request->tanggal}", 'Absensi');
+
+        return back()->with('success', 'Data absensi berhasil ditambahkan.');
+    }
+
+    // ── KOREKSI ABSENSI: EDIT ──
+    public function absensiUpdate(Request $request, int $id): RedirectResponse
+    {
+        $absensi = Absensi::findOrFail($id);
+
+        $request->validate([
+            'jam_masuk' => 'nullable|date_format:H:i',
+            'jam_pulang' => 'nullable|date_format:H:i',
+            'status' => 'required|in:Hadir,Terlambat,Alfa,Izin',
+            'mode_kerja' => 'required|in:WFO,WFA',
+        ]);
+
+        $durasi = $absensi->durasi_kerja;
+        if ($request->jam_masuk && $request->jam_pulang) {
+            $masuk = \Carbon\Carbon::parse($request->jam_masuk);
+            $pulang = \Carbon\Carbon::parse($request->jam_pulang);
+            $menit = $masuk->diffInMinutes($pulang);
+            $durasi = floor($menit / 60).' jam '.($menit % 60).' menit';
+        }
+
+        $absensi->update([
+            'jam_masuk' => $request->jam_masuk ? $request->jam_masuk.':00' : null,
+            'jam_pulang' => $request->jam_pulang ? $request->jam_pulang.':00' : null,
+            'durasi_kerja' => $durasi,
+            'status' => $request->status,
+            'mode_kerja' => $request->mode_kerja,
+        ]);
+
+        AuditLog::catat('Koreksi Absensi', "Mengedit absensi ID {$id} tanggal {$absensi->tanggal}", 'Absensi', $id);
+
+        return back()->with('success', 'Data absensi berhasil diperbarui.');
+    }
+
+    // ── KOREKSI ABSENSI: HAPUS ──
+    public function absensiDestroy(int $id): RedirectResponse
+    {
+        $absensi = Absensi::findOrFail($id);
+        AuditLog::catat('Hapus Absensi', "Menghapus absensi ID {$id} tanggal {$absensi->tanggal}", 'Absensi', $id);
+        $absensi->delete();
+
+        return back()->with('success', 'Data absensi berhasil dihapus.');
+    }
+
     // ── KELOLA LOKASI KERJA ──
     public function lokasi(): \Illuminate\View\View
     {
@@ -439,11 +527,12 @@ class AdminController extends Controller
             'longitude' => 'required|numeric',
             'radius_meter' => 'required|integer|min:10',
             'jam_masuk' => 'required',
+            'jam_pulang' => 'nullable|date_format:H:i',
         ]);
 
         $lokasi = LokasiKerja::findOrFail($id);
         $lokasi->update($request->only([
-            'nama_lokasi', 'latitude', 'longitude', 'radius_meter', 'jam_masuk',
+            'nama_lokasi', 'latitude', 'longitude', 'radius_meter', 'jam_masuk', 'jam_pulang',
         ]));
 
         AuditLog::catat('Update Lokasi', "Mengubah lokasi kerja: {$lokasi->nama_lokasi} (radius {$lokasi->radius_meter}m, jam masuk {$lokasi->jam_masuk})", 'LokasiKerja', $lokasi->id);

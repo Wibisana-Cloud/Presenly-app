@@ -29,8 +29,8 @@ class IzinDiprosesNotification extends Notification
             : $tanggalMulai;
 
         $mail = (new MailMessage)
-            ->subject('[Presenly] Pengajuan Izin ' . ($disetujui ? 'Disetujui' : 'Ditolak'))
-            ->greeting('Halo, ' . $notifiable->name . '!')
+            ->subject('[Presenly] Pengajuan Izin '.($disetujui ? 'Disetujui' : 'Ditolak'))
+            ->greeting('Halo, '.$notifiable->name.'!')
             ->line($disetujui
                 ? 'Pengajuan izin Anda telah **disetujui** oleh admin.'
                 : 'Mohon maaf, pengajuan izin Anda **ditolak** oleh admin.'

@@ -12,5 +12,6 @@ class LokasiKerja extends Model
         'longitude',
         'radius_meter',
         'jam_masuk',
+        'jam_pulang',
     ];
 }

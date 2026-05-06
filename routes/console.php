@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // Tandai Alfa setiap hari pukul 23:59
 Schedule::command('absensi:mark-alfa')->dailyAt('23:59');
+
+// Kirim reminder absen setiap hari kerja pukul 08:30
+Schedule::command('absensi:kirim-reminder')->dailyAt('08:30')->weekdays();

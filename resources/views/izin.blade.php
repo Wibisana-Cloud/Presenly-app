@@ -38,6 +38,9 @@
         .logout-btn { display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: transparent; border: 1px solid rgba(239,68,68,0.4); border-radius: 7px; color: #fca5a5; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s; }
         .logout-btn:hover { background: rgba(239,68,68,0.12); }
         .logout-btn [data-lucide] { width: 13px; height: 13px; }
+        .admin-switch-btn { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 7px; color: rgba(255,255,255,0.85); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 600; text-decoration: none; transition: all 0.2s; cursor: pointer; }
+        .admin-switch-btn:hover { background: rgba(255,255,255,0.18); }
+        .admin-switch-btn [data-lucide] { width: 13px; height: 13px; }
 
         main { padding-top: calc(var(--nav-h) + 20px); padding-bottom: 90px; max-width: 520px; margin: 0 auto; padding-left: 16px; padding-right: 16px; }
 
@@ -167,6 +170,11 @@
             <div class="user-avatar">{{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}</div>
             <span class="user-name">{{ Auth::user()->name ?? 'Karyawan' }}</span>
         </div>
+        @if(Auth::user()->role_id === 1)
+            <a href="{{ route('admin.dashboard') }}" class="admin-switch-btn">
+                <i data-lucide="layout-dashboard"></i> Panel Admin
+            </a>
+        @endif
         <form method="POST" action="{{ route('logout') }}" style="margin:0">
             @csrf
             <button type="submit" class="logout-btn">

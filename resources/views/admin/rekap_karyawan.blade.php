@@ -138,6 +138,9 @@
         <a href="{{ route('admin.hari_libur') }}" class="nav-item"><i data-lucide="calendar-off"></i> Hari Libur</a>
         <a href="{{ route('admin.lokasi') }}" class="nav-item"><i data-lucide="map-pin"></i> Lokasi Kerja</a>
         <a href="{{ route('admin.jadwal_mode') }}" class="nav-item"><i data-lucide="calendar-check"></i> Jadwal Mode Kerja</a>
+        <a href="{{ route('admin.pengumuman') }}" class="nav-item"><i data-lucide="megaphone"></i> Pengumuman</a>
+        <a href="{{ route('admin.departemen') }}" class="nav-item"><i data-lucide="layers"></i> Departemen</a>
+        <a href="{{ route('admin.statistik') }}" class="nav-item"><i data-lucide="bar-chart-2"></i> Statistik</a>
         <div class="nav-label">Sistem</div>
         <a href="{{ route('admin.audit_log') }}" class="nav-item"><i data-lucide="shield-check"></i> Audit Log</a>
     </nav>
@@ -177,7 +180,7 @@
                 <select name="bulan" class="filter-select">
                     @foreach(range(1, 12) as $m)
                         <option value="{{ $m }}" @selected($m == $bulan)>
-                            {{ \Carbon\Carbon::create()->month($m)->translatedFormat('F') }}
+                            {{ \Carbon\Carbon::createFromDate(null, (int) $m)->translatedFormat('F') }}
                         </option>
                     @endforeach
                 </select>
@@ -220,7 +223,7 @@
     <div class="table-card">
         <div class="table-header">
             <span class="table-title">
-                Riwayat Absensi — {{ \Carbon\Carbon::create()->month($bulan)->translatedFormat('F') }} {{ $tahun }}
+                Riwayat Absensi — {{ \Carbon\Carbon::createFromDate(null, (int) $bulan)->translatedFormat('F') }} {{ $tahun }}
             </span>
             <span class="table-sub">{{ $totalAbsensi }} hari tercatat</span>
         </div>
