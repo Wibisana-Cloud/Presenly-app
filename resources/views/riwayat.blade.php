@@ -72,43 +72,21 @@
         .export-btn.csv { background: var(--green-light); border: 1.5px solid var(--green-mid); color: var(--green-dark); }
         .export-btn.csv:hover { background: var(--green-mid); }
 
-        .list-card { animation: fadeUp 0.4s 0.15s ease both; padding: 0; overflow: hidden; }
-        .list-card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .table-card { animation: fadeUp 0.4s 0.15s ease both; background: var(--white); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .table-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .table-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray); }
         .list-count { font-size: 12px; color: var(--gray); background: var(--gray-light); border: 1px solid var(--border); border-radius: 20px; padding: 2px 10px; font-weight: 600; }
-        .riwayat-list { display: flex; flex-direction: column; }
-
-        .riwayat-item { padding: 16px 20px; border-bottom: 1px solid #f1f5f9; transition: background 0.15s; }
-        .riwayat-item:last-child { border-bottom: none; }
-        .riwayat-item:hover { background: #f8fafc; }
-
-        .riwayat-item-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
-        .riwayat-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
-        .riwayat-dot.hadir     { background: var(--green); box-shadow: 0 0 0 3px rgba(34,197,94,0.2); }
-        .riwayat-dot.terlambat { background: var(--yellow); box-shadow: 0 0 0 3px rgba(245,158,11,0.2); }
-        .riwayat-dot.alfa      { background: var(--red); box-shadow: 0 0 0 3px rgba(239,68,68,0.2); }
-        .riwayat-dot.izin      { background: var(--blue); box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
-        .riwayat-tanggal-wrap { flex: 1; }
-        .riwayat-tanggal { font-size: 14px; font-weight: 700; color: var(--dark); }
-        .riwayat-hari { font-size: 11px; color: var(--gray); margin-top: 1px; }
-        .riwayat-status { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 100px; flex-shrink: 0; }
-        .riwayat-status.hadir     { background: var(--green-light); color: var(--green-dark); }
-        .riwayat-status.terlambat { background: #fef3c7; color: #92400e; }
-        .riwayat-status.alfa      { background: #fef2f2; color: var(--red); }
-        .riwayat-status.izin      { background: #dbeafe; color: #1d4ed8; }
-
-        .detail-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-        .detail-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .detail-box { background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 10px; padding: 10px 12px; transition: border-color 0.2s; }
-        .detail-box:hover { border-color: var(--border); }
-        .detail-box-label { font-size: 10px; color: var(--gray); font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
-        .detail-box-label [data-lucide] { width: 11px; height: 11px; flex-shrink: 0; }
-        .detail-box-value { font-size: 14px; font-weight: 700; color: var(--dark); }
-        .detail-box-value.green { color: var(--green-dark); }
-        .detail-box-value.red   { color: var(--red); }
-        .detail-box-value.muted { color: var(--gray); font-size: 12px; font-weight: 500; }
-
-        .mode-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 100px; background: #eff6ff; color: #1d4ed8; margin-top: 8px; }
-        .mode-badge [data-lucide] { width: 11px; height: 11px; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        thead th { padding: 10px 14px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray); font-weight: 600; border-bottom: 1px solid var(--border); background: #f8fafc; }
+        tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: linear-gradient(to right, #f0fdf4, #f8fafc); }
+        tbody td { padding: 10px 14px; font-size: 13px; color: var(--text); }
+        .td-muted { color: var(--gray); }
+        .td-green { color: var(--green-dark); font-weight: 600; }
+        .td-tanggal { font-weight: 600; color: var(--dark); font-size: 12px; }
+        .td-hari { font-size: 10px; color: var(--gray); margin-top: 1px; }
 
         .empty-state { text-align: center; padding: 48px 20px; }
         .empty-state-icon { width: 64px; height: 64px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
@@ -219,9 +197,9 @@
     </div>
 
     {{-- LIST --}}
-    <div class="card list-card">
-        <div class="list-card-header">
-            <span class="card-title">Data Absensi</span>
+    <div class="table-card">
+        <div class="table-header">
+            <span class="table-title">Data Absensi</span>
             <span class="list-count">{{ $riwayat->count() }} data</span>
         </div>
 
@@ -232,71 +210,32 @@
             <div class="empty-state-sub">Tidak ada catatan absensi untuk periode yang dipilih</div>
         </div>
         @else
-        <div class="riwayat-list">
-            @foreach($riwayat as $item)
-            @php $status = strtolower($item->status ?? 'alfa'); @endphp
-            <div class="riwayat-item">
-
-                <div class="riwayat-item-top">
-                    <div class="riwayat-dot {{ $status }}"></div>
-                    <div class="riwayat-tanggal-wrap">
-                        <div class="riwayat-tanggal">
-                            {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d F Y') }}
-                        </div>
-                        <div class="riwayat-hari">
-                            {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('l') }}
-                        </div>
-                    </div>
-                    <span class="riwayat-status {{ $status }}">{{ ucfirst($status) }}</span>
-                </div>
-
-                <div class="detail-grid-3">
-                    <div class="detail-box">
-                        <div class="detail-box-label"><i data-lucide="log-in"></i> Masuk</div>
-                        <div class="detail-box-value green">
-                            {{ $item->jam_masuk ? \Carbon\Carbon::parse($item->jam_masuk)->format('H:i') : '-' }}
-                        </div>
-                    </div>
-                    <div class="detail-box">
-                        <div class="detail-box-label"><i data-lucide="log-out"></i> Pulang</div>
-                        <div class="detail-box-value red">
-                            {{ $item->jam_pulang ? \Carbon\Carbon::parse($item->jam_pulang)->format('H:i') : '-' }}
-                        </div>
-                    </div>
-                    <div class="detail-box">
-                        <div class="detail-box-label"><i data-lucide="timer"></i> Durasi</div>
-                        <div class="detail-box-value {{ $item->durasi_kerja ? '' : 'muted' }}">
-                            {{ $item->durasi_kerja ?? '-' }}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="detail-grid-2">
-                    <div class="detail-box">
-                        <div class="detail-box-label"><i data-lucide="ruler"></i> Jarak</div>
-                        <div class="detail-box-value">
-                            {{ $item->jarak_meter ? number_format($item->jarak_meter) . ' m' : '-' }}
-                        </div>
-                    </div>
-                    <div class="detail-box">
-                        <div class="detail-box-label"><i data-lucide="map-pin"></i> Koordinat</div>
-                        <div class="detail-box-value muted" style="font-size:11px;">
-                            @if($item->latitude_absen && $item->longitude_absen)
-                                {{ number_format($item->latitude_absen, 5) }},
-                                {{ number_format($item->longitude_absen, 5) }}
-                            @else
-                                -
-                            @endif
-                        </div>
-                    </div>
-                </div>
-
-                @if(isset($item->mode_kerja) && $item->mode_kerja === 'WFA')
-                <div class="mode-badge"><i data-lucide="laptop"></i> Work From Anywhere</div>
-                @endif
-
-            </div>
-            @endforeach
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tanggal</th>
+                        <th>Jam Masuk</th>
+                        <th>Jam Pulang</th>
+                        <th>Durasi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($riwayat as $i => $item)
+                    <tr>
+                        <td class="td-muted">{{ $i + 1 }}</td>
+                        <td>
+                            <div class="td-tanggal">{{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }}</div>
+                            <div class="td-hari">{{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('l') }}</div>
+                        </td>
+                        <td class="td-green">{{ $item->jam_masuk ? \Carbon\Carbon::parse($item->jam_masuk)->format('H:i') : '-' }}</td>
+                        <td class="td-muted">{{ $item->jam_pulang ? \Carbon\Carbon::parse($item->jam_pulang)->format('H:i') : '-' }}</td>
+                        <td class="td-muted">{{ $item->durasi_kerja ?? '-' }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
         @endif
     </div>
